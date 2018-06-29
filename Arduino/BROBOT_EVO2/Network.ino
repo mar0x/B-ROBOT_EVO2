@@ -94,12 +94,11 @@ int ESPwait(String stopstr, int timeout_secs)
 // getMacAddress from ESP wifi module
 int ESPgetMac()
 {
-  char c1, c2;
+  char c1 = 0, c2;
   bool timeout = false;
   long timer_init;
   long timer;
   uint8_t state = 0;
-  uint8_t index = 0;
 
   MAC = "";
   timer_init = millis();
@@ -141,11 +140,12 @@ int ESPgetMac()
   return -1;  // timeout
 }
 
-int ESPsendCommand(char *command, String stopstr, int timeout_secs)
+int ESPsendCommand(const char *command, String stopstr, int timeout_secs)
 {
   Serial1.println(command);
-  ESPwait(stopstr, timeout_secs);
+  int res = ESPwait(stopstr, timeout_secs);
   delay(250);
+  return res;
 }
 
 

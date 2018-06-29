@@ -203,7 +203,7 @@ void setup()
   pinMode(8, OUTPUT); // DIR MOTOR 1  PORTB,4
   pinMode(12, OUTPUT); // STEP MOTOR 2 PORTD,6
   pinMode(5, OUTPUT); // DIR MOTOR 2  PORTC,6
-  digitalWrite(4, HIGH);  // Disbale motors
+  digitalWrite(4, HIGH);  // Disable motors
   pinMode(10, OUTPUT);  // Servo1 (arm)
   pinMode(13, OUTPUT);  // Servo2
 
@@ -236,22 +236,24 @@ void setup()
   ESPsendCommand("AT+GMR", "OK", 5);
 
 #ifdef EXTERNAL_WIFI
-  ESPsendCommand("AT+CWQAP", "OK", 3);
-  ESPsendCommand("AT+CWMODE=1", "OK", 3);
-  //String auxCommand = (String)"AT+CWJAP="+WIFI_SSID+","+WIFI_PASSWORD;
-  char auxCommand[90] = "AT+CWJAP=\"";
-  strcat(auxCommand, WIFI_SSID);
-  strcat(auxCommand, "\",\"");
-  strcat(auxCommand, WIFI_PASSWORD);
-  strcat(auxCommand, "\"");
-  ESPsendCommand(auxCommand, "OK", 14);
+  {
+    ESPsendCommand("AT+CWQAP", "OK", 3);
+    ESPsendCommand("AT+CWMODE=1", "OK", 3);
+    //String auxCommand = (String)"AT+CWJAP="+WIFI_SSID+","+WIFI_PASSWORD;
+    char auxCommand[90] = "AT+CWJAP=\"";
+    strcat(auxCommand, WIFI_SSID);
+    strcat(auxCommand, "\",\"");
+    strcat(auxCommand, WIFI_PASSWORD);
+    strcat(auxCommand, "\"");
+    ESPsendCommand(auxCommand, "OK", 14);
 #ifdef WIFI_IP
-  strcpy(auxCommand, "AT+CIPSTA=\"");
-  strcat(auxCommand, WIFI_IP);
-  strcat(auxCommand, "\"");
-  ESPsendCommand(auxCommand, "OK", 4);
+    strcpy(auxCommand, "AT+CIPSTA=\"");
+    strcat(auxCommand, WIFI_IP);
+    strcat(auxCommand, "\"");
+    ESPsendCommand(auxCommand, "OK", 4);
 #endif
-  ESPsendCommand("AT+CIPSTA?", "OK", 4);
+    ESPsendCommand("AT+CIPSTA?", "OK", 4);
+  }
 #else  // Deafault : we generate a wifi network
   Serial1.println("AT+CIPSTAMAC?");
   ESPgetMac();
@@ -261,21 +263,30 @@ void setup()
   ESPsendCommand("AT+CWQAP", "OK", 3);
   ESPsendCommand("AT+CWMODE=2", "OK", 3); // Soft AP mode
   // Generate Soft AP. SSID=JJROBOTS, PASS=87654321
-  char *cmd =  "AT+CWSAP=\"JJROBOTS_XX\",\"87654321\",5,3";
-  // Update XX characters with MAC address (last 2 characters)
-  cmd[19] = MAC[10];
-  cmd[20] = MAC[11];
-  ESPsendCommand(cmd, "OK", 6);
+  {
+    char cmd[] =  "AT+CWSAP=\"JJROBOTS_XX\",\"87654321\",5,3";
+    // Update XX characters with MAC address (last 2 characters)
+    cmd[19] = MAC[10];
+    cmd[20] = MAC[11];
+    ESPsendCommand(cmd, "OK", 6);
+  }
 #endif
   // Start UDP SERVER on port 2222, telemetry port 2223
   Serial.println("Start UDP server");
   ESPsendCommand("AT+CIPMUX=0", "OK", 3);  // Single connection mode
   ESPsendCommand("AT+CIPMODE=1", "OK", 3); // Transparent mode
-  char Telemetry[80];
-  strcpy(Telemetry,"AT+CIPSTART=\"UDP\",\"");
-  strcat(Telemetry,TELEMETRY);
-  strcat(Telemetry,"\",2223,2222,0");
-  ESPsendCommand(Telemetry, "OK", 3); 
+
+  {
+    char Telemetry[80];
+    strcpy(Telemetry,"AT+CIPSTART=\"UDP\",\"");
+    strcat(Telemetry,TELEMETRY);
+    strcat(Telemetry,"\",2223,2222,0");
+    ESPsendCommand(Telemetry, "OK", 3); 
+  }
+
+  goto haveWiFi;
+
+haveWiFi:
 
   // Calibrate gyros
   MPU6050_calibrate();
@@ -326,6 +337,7 @@ void setup()
   }
   BROBOT_moveServo1(SERVO_AUX_NEUTRO);
   BROBOT_moveServo2(SERVO2_NEUTRO);
+  digitalWrite(4, HIGH);  // Disable motors
 
  #if TELEMETRY_BATTERY==1
   BatteryValue = BROBOT_readBattery(true);
@@ -409,14 +421,15 @@ void loop()
 #endif
   } // End new OSC message
 
-  timer_value = micros();
-
   // New IMU data?
   if (MPU6050_newData())
   {
     MPU6050_read_3axis();
     loop_counter++;
     slow_loop_counter++;
+
+    timer_value = micros();
+
     dt = (timer_value - timer_old) * 0.000001; // dt in seconds
     timer_old = timer_value;
 

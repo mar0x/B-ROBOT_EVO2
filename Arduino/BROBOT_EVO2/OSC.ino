@@ -68,33 +68,32 @@ void OSC_init()
   OSCfader[3] = 0.5;
 }
 
-void OSC_MsgSend(char *c, unsigned char msgSize, float p)
+void OSC_MsgSend(const char *c, unsigned char msgSize, float p)
 {
   uint8_t i;
   union {
-    unsigned char Buff[4];
+    uint8_t Buff[4];
     float d;
   } u;
 
-  // We copy the param in the last 4 bytes
-  u.d = p;
-  c[msgSize - 4] = u.Buff[3];
-  c[msgSize - 3] = u.Buff[2];
-  c[msgSize - 2] = u.Buff[1];
-  c[msgSize - 1] = u.Buff[0];
   for (i = 0; i < msgSize; i++)
   {
     Serial1.write((uint8_t)c[i]);
     //Serial.write((uint8_t)c[i]);
   }
+
+  // We copy the param in the last 4 bytes
+  u.d = p;
+  Serial1.write(u.Buff[3]);
+  Serial1.write(u.Buff[2]);
+  Serial1.write(u.Buff[1]);
+  Serial1.write(u.Buff[0]);
 }
 
 void OSC_MsgRead()
 {
   uint8_t i;
-  uint8_t tmp;
   float value;
-  float value2;
 
   // New bytes available to process?
   if (Serial1.available() > 0) {
@@ -123,7 +122,7 @@ void OSC_MsgRead()
       }
       return;
     } else if (OSCreadStatus == 1) { // looking for the message type
-      // Fadder    /1/fader1 ,f  xxxx
+      // Fader    /1/fader1 ,f  xxxx
       if ((UDPBuffer[3] == 'd') && (UDPBuffer[2] == 'e') && (UDPBuffer[1] == 'r')) {
         OSCreadStatus = 2;  // Message type detected
         OSCreadCounter = 11; // Bytes to read the parameter
@@ -135,7 +134,7 @@ void OSC_MsgRead()
         Serial.print("$");
 #endif
         return;
-      } // end fadder
+      } // end fader
       // MOVE message
       if ((UDPBuffer[3] == 'o') && (UDPBuffer[2] == 'v') && (UDPBuffer[1] == 'e')) {
         OSCreadStatus = 2;  // Message type detected
@@ -185,7 +184,7 @@ void OSC_MsgRead()
         } // end toggle
       } else if (OSCreadStatus == 2) {
       if ((UDPBuffer[1] == '/') && (UDPBuffer[0] == 'z')) { // Touch up message? (/z) [only on page1]
-        if ((OSCpage == 1) && (OSCcommandType <= 2)) { // Touchup message only on Fadder1 and Fadder2
+        if ((OSCpage == 1) && (OSCcommandType <= 2)) { // Touchup message only on Fader1 and Fader2
           OSCtouchMessage = 1;
         }
         else {
@@ -205,7 +204,7 @@ void OSC_MsgRead()
             if ((OSCtouchMessage) && (value == 0)) {
               OSCfader[0] = 0.5;
               //Serial.println("TOUCH_X");
-              OSC_MsgSend("/1/fader1\0\0\0,f\0\0\0\0\0\0", 20, 0.5);
+              OSC_MsgSend("/1/fader1\0\0\0,f\0\0", 16, 0.5);
             }
 #ifdef OSCDEBUG
             Serial.print("$F1:");
@@ -218,7 +217,7 @@ void OSC_MsgRead()
             if ((OSCtouchMessage) && (value == 0)) {
               OSCfader[1] = 0.5;
               //Serial.println("TOUCH_Y");
-              OSC_MsgSend("/1/fader2\0\0\0,f\0\0\0\0\0\0", 20, 0.5);
+              OSC_MsgSend("/1/fader2\0\0\0,f\0\0", 16, 0.5);
             }
 #ifdef OSCDEBUG
             Serial.print("$F2:");

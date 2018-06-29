@@ -10,7 +10,7 @@
 // Documentation:"MPU-6000 and MPU-6050 Register Map and Descriptions": RM-MPU-6000A.pdf
 
 // MPU6050 Register map
-#define MPU6050_AUX_VDDIO          0x01   // R/W
+// #define MPU6050_AUX_VDDIO          0x01   // R/W
 #define MPU6050_SMPLRT_DIV         0x19   // R/W
 #define MPU6050_CONFIG             0x1A   // R/W
 #define MPU6050_GYRO_CONFIG        0x1B   // R/W
@@ -21,7 +21,7 @@
 #define MPU6050_MOT_DUR            0x20   // R/W
 #define MPU6050_ZRMOT_THR          0x21   // R/W
 #define MPU6050_ZRMOT_DUR          0x22   // R/W
-#define MPU6050_FIFO_EN            0x23   // R/W
+// #define MPU6050_FIFO_EN            0x23   // R/W
 #define MPU6050_I2C_MST_CTRL       0x24   // R/W
 #define MPU6050_I2C_SLV0_ADDR      0x25   // R/W
 #define MPU6050_I2C_SLV0_REG       0x26   // R/W
@@ -114,7 +114,7 @@
 #define MPU6050_D7 7
 
 // AUX_VDDIO Register
-#define MPU6050_AUX_VDDIO MPU6050_D7  // I2C high: 1=VDD, 0=VLOGIC
+// #define MPU6050_AUX_VDDIO MPU6050_D7  // I2C high: 1=VDD, 0=VLOGIC
 
 // CONFIG Register
 // DLPF is Digital Low Pass Filter for both gyro and accelerometers.
@@ -357,7 +357,7 @@
 #define MPU6050_FIFO_RESET     MPU6050_D2
 #define MPU6050_I2C_IF_DIS     MPU6050_D4   // must be 0 for MPU-6050
 #define MPU6050_I2C_MST_EN     MPU6050_D5
-#define MPU6050_FIFO_EN        MPU6050_D6
+// #define MPU6050_FIFO_EN        MPU6050_D6
 
 // PWR_MGMT_1 Register
 // These are the names for the bits.
@@ -431,7 +431,7 @@ uint8_t swap;
 // lower address, so that has to be corrected.
 // The register part "reg" is only used internally,
 // and are swapped in code.
-typedef union accel_t_gyro_union
+union accel_t_gyro_union
 {
   struct
   {
@@ -657,7 +657,7 @@ bool MPU6050_newData()
 // MPU6050_read n bytes
 int MPU6050_read(int start, uint8_t *buffer, int size)
 {
-  int i, n, error;
+  int i, n;
 
   Wire.beginTransmission(MPU6050_I2C_ADDRESS);
   n = Wire.write(start);
